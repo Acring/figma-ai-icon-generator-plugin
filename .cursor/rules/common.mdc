@@ -1,0 +1,290 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+
+# Figma Plugin Development Rules
+
+## Project Overview
+
+This is a Figma plugin template built with React 19 + TypeScript + Tailwind CSS 4 + shadcn/ui.
+
+## Architecture
+
+Figma plugins consist of two isolated runtime environments:
+
+### 1. Plugin Code (Sandbox)
+- **Location**: `src/plugin/controller.ts`
+- **Runtime**: Figma's sandbox environment with access to Figma API
+- **Characteristics**:
+  - Can access and manipulate Figma documents (nodes, styles, components, etc.)
+  - Cannot access browser APIs (DOM, fetch, localStorage, etc.)
+  - Sends messages to UI via `figma.ui.postMessage()`
+  - Receives messages from UI via `figma.ui.onmessage`
+
+### 2. UI Code (iframe)
+- **Location**: `src/app/`
+- **Runtime**: Standard browser environment inside an iframe
+- **Characteristics**:
+  - Can use React, DOM APIs, fetch, and other browser features
+  - Cannot directly access Figma API
+  - Sends messages to Plugin via `parent.postMessage({ pluginMessage: ... }, '*')`
+  - Receives messages from Plugin via `window.addEventListener('message', ...)`
+
+## Message Communication Guidelines
+
+### Message Type Definitions
+
+Always define message types in `src/typings/types.d.ts`:
+
+```typescript
+// Define specific message types, avoid using any
+interface CreateRectMessage {
+  type: 'create-rect';
+  name?: string;
+  width?: number;
+  height?: number;
+}
+
+interface SelectionCountMessage {
+  type: 'selection-count';
+  count: number;
+}
+
+type PluginMessage = CreateRectMessage | SelectionCountMessage | /* other message types */;
+```
+
+### Plugin → UI Communication
+
+```typescript
+// controller.ts
+figma.ui.postMessage({
+  type: 'selection-count',
+  count: figma.currentPage.selection.length,
+});
+```
+
+### UI → Plugin Communication
+
+```typescript
+// In React component
+parent.postMessage({ pluginMessage: { type: 'create-rect', name: 'My Rectangle' } }, '*');
+```
+
+### Message Handling Best Practices
+
+1. **Use switch-case for message types** to keep code organized
+2. **Validate message data** to prevent runtime errors
+3. **Use TypeScript type guards** to ensure type safety
+
+## Figma API Guidelines
+
+### Node Operations
+
+```typescript
+// ✅ Correct: Check node type before accessing specific properties
+if (node.type === 'RECTANGLE') {
+  node.cornerRadius = 8;
+}
+
+// ❌ Wrong: Directly accessing properties that may not exist
+node.cornerRadius = 8;
+```
+
+### Async Operations
+
+```typescript
+// ✅ Correct: Use async/await for async operations
+async function loadFonts() {
+  await figma.loadFontAsync({ family: 'Inter', style: 'Regular' });
+  // Now you can modify text
+}
+
+// ❌ Wrong: Ignoring font loading
+textNode.characters = 'Hello'; // May fail
+```
+
+### Selection Operations
+
+```typescript
+// Get current selection
+const selection = figma.currentPage.selection;
+
+// Set selection
+figma.currentPage.selection = [newNode];
+
+// Scroll to node
+figma.viewport.scrollAndZoomIntoView([node]);
+```
+
+### User Notifications
+
+```typescript
+// Success notification
+figma.notify('Operation completed successfully');
+
+// Error notification
+figma.notify('An error occurred', { error: true });
+
+// Notification with timeout
+figma.notify('Processing...', { timeout: 3000 });
+```
+
+## React UI Development Guidelines
+
+### Component Structure
+
+```
+src/app/
+├── components/
+│   ├── App.tsx          # Main application component
+│   └── ui/              # shadcn/ui components
+├── styles/
+│   └── ui.css           # Tailwind styles
+├── lib/
+│   └── utils.ts         # Utility functions
+└── index.tsx            # Entry point
+```
+
+### Message Listener Hook
+
+Recommended custom Hook for message handling:
+
+```typescript
+function usePluginMessage<T>(type: string, handler: (data: T) => void) {
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      const msg = event.data.pluginMessage;
+      if (msg?.type === type) {
+        handler(msg);
+      }
+    };
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [type, handler]);
+}
+```
+
+### Styling Guidelines
+
+- Use Tailwind CSS for styling
+- Use shadcn/ui components for UI consistency
+- Recommended plugin UI dimensions: width 240-400px, height adaptive to content
+- Consider Figma's dark/light theme compatibility
+
+## TypeScript Guidelines
+
+### Type Imports
+
+```typescript
+// ✅ Correct: Use types from @figma/plugin-typings
+const node: SceneNode = figma.currentPage.selection[0];
+
+// Node type checking
+function isTextNode(node: SceneNode): node is TextNode {
+  return node.type === 'TEXT';
+}
+```
+
+### Avoid any Type
+
+```typescript
+// ❌ Avoid
+figma.ui.onmessage = (msg: any) => { ... };
+
+// ✅ Recommended
+figma.ui.onmessage = (msg: PluginMessage) => { ... };
+```
+
+## Performance Optimization
+
+### Batch Operations
+
+```typescript
+// ✅ Correct: Batch updates to reduce repaints
+figma.skipInvisibleInstanceChildren = true;
+
+const nodes = figma.currentPage.findAll();
+// Process all nodes at once
+```
+
+### Avoid Frequent Communication
+
+```typescript
+// ❌ Wrong: Sending messages frequently
+nodes.forEach(node => {
+  figma.ui.postMessage({ type: 'node-info', node });
+});
+
+// ✅ Correct: Batch send
+figma.ui.postMessage({
+  type: 'nodes-info',
+  nodes: nodes.map(n => ({ id: n.id, name: n.name }))
+});
+```
+
+## Error Handling
+
+### Plugin Side
+
+```typescript
+try {
+  // Figma API operations
+  const node = figma.createRectangle();
+} catch (error) {
+  figma.notify('Creation failed: ' + (error as Error).message, { error: true });
+}
+```
+
+### UI Side
+
+```typescript
+try {
+  // UI operations
+} catch (error) {
+  console.error('UI Error:', error);
+  // Can send error message to Plugin side for notification
+}
+```
+
+## File Naming Conventions
+
+- **Component files**: PascalCase (e.g., `App.tsx`, `Button.tsx`)
+- **Utility functions**: camelCase (e.g., `utils.ts`)
+- **Type definitions**: camelCase (e.g., `types.d.ts`)
+- **Style files**: kebab-case (e.g., `ui.css`)
+
+## Development Commands
+
+```bash
+pnpm dev          # Development mode (watch for file changes)
+pnpm build        # Production build
+pnpm lint         # Code linting
+pnpm lint:fix     # Auto-fix code issues
+pnpm typecheck    # TypeScript type checking
+```
+
+## Common Issues
+
+### Font Loading Failure
+You must load the font before modifying a TextNode:
+```typescript
+await figma.loadFontAsync(textNode.fontName as FontName);
+```
+
+### Plugin UI Size Adjustment
+```typescript
+figma.showUI(__html__, { width: 320, height: 480 });
+// Or dynamically resize
+figma.ui.resize(400, 600);
+```
+
+### Getting Node Styles
+```typescript
+// Get fill color
+if (node.type === 'RECTANGLE' && node.fills !== figma.mixed) {
+  const fills = node.fills as Paint[];
+  // Handle fills
+}
+```
