@@ -1,7 +1,7 @@
 {
-  "name": "figma-react-plugin-template",
+  "name": "figma-ai-icon-generator",
   "version": "1.0.0",
-  "description": "Figma plugin template with React 19 + Tailwind CSS 4 + shadcn/ui",
+  "description": "Figma 插件：使用 AI 生成风格统一的图标和插图",
   "license": "MIT",
   "scripts": {
     "dev": "webpack --mode=development --watch",

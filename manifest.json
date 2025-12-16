@@ -1,8 +1,12 @@
 {
-  "name": "Figma React Plugin Template",
+  "name": "AI Icon Generator",
   "id": "000000000000000000",
   "api": "1.0.0",
   "main": "dist/code.js",
   "ui": "dist/ui.html",
-  "editorType": ["figma"]
+  "editorType": ["figma"],
+  "networkAccess": {
+    "allowedDomains": ["*"],
+    "reasoning": "Plugin supports user-configurable AI API endpoints including OpenAI, Anthropic, and other compatible services."
+  }
 }
