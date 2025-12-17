@@ -160,7 +160,7 @@ export default function TemplatesTab({ templates, onAdd, onUpdate, onDelete }: T
   );
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* 标题和添加按钮 */}
       <div className="flex items-center justify-between">
         <div>
@@ -205,7 +205,7 @@ export default function TemplatesTab({ templates, onAdd, onUpdate, onDelete }: T
             <DialogDescription>使用 {'{theme}'} 作为主题占位符</DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {/* 名称 */}
             <div className="flex flex-col gap-2">
               <Label htmlFor="templateName">名称</Label>

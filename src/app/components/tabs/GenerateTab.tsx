@@ -123,7 +123,7 @@ export default function GenerateTab({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* 草图预览 */}
       <SketchPreview sketch={sketch} onSketchChange={setSketch} />
 

@@ -110,7 +110,7 @@ export default function LibraryTab({ styleRefs, onAdd, onUpdate, onDelete }: Lib
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* 标题和添加按钮 */}
       <div className="flex items-center justify-between">
         <div>
@@ -193,7 +193,7 @@ export default function LibraryTab({ styleRefs, onAdd, onUpdate, onDelete }: Lib
             <DialogTitle>{editingRef ? '编辑参考' : '添加风格参考'}</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             {/* SVG 预览/获取 */}
             <div className="flex flex-col gap-2">
               <Label>SVG 内容</Label>
@@ -281,7 +281,7 @@ export default function LibraryTab({ styleRefs, onAdd, onUpdate, onDelete }: Lib
           </DialogHeader>
 
           {previewRef && (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               {/* SVG 大预览 */}
               <Card className="p-4">
                 <div

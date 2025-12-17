@@ -67,7 +67,7 @@ export default function HistoryTab({ history, onDelete, onClear }: HistoryTabPro
   };
 
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
       {/* 标题和清空按钮 */}
       <div className="flex items-center justify-between">
         <div>
@@ -94,7 +94,7 @@ export default function HistoryTab({ history, onDelete, onClear }: HistoryTabPro
           </div>
         </Card>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {history.map((record) => (
             <Card
               key={record.id}
@@ -175,7 +175,7 @@ export default function HistoryTab({ history, onDelete, onClear }: HistoryTabPro
           </DialogHeader>
 
           {selectedRecord && (
-            <div className="space-y-4">
+            <div className="flex flex-col gap-4">
               {/* SVG 预览 */}
               <Card className="p-3">
                 <div

@@ -128,15 +128,15 @@ export default function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[90%] rounded-lg h-[90%] overflow-auto">
+      <DialogContent className="rounded-lg h-[90%] overflow-auto">
         <DialogHeader>
           <DialogTitle>设置</DialogTitle>
           <DialogDescription>配置 Claude API 和默认参数</DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-6">
+        <div className="flex flex-col gap-6">
           {/* API 配置 */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h3 className="text-sm font-medium">API 配置</h3>
 
             {/* Base URL */}
@@ -262,7 +262,7 @@ export default function SettingsDialog({
           </div>
 
           {/* 默认设置 */}
-          <div className="space-y-4">
+          <div className="flex flex-col gap-4">
             <h3 className="text-sm font-medium">默认设置</h3>
 
             {/* 默认尺寸 */}
