@@ -34,13 +34,31 @@ interface ClaudeRequest {
   messages: ClaudeMessage[];
 }
 
-interface ClaudeResponse {
+// Anthropic 原生格式响应
+interface AnthropicResponse {
   content: { type: 'text'; text: string }[];
   error?: {
     type: string;
     message: string;
   };
 }
+
+// OpenAI 兼容格式响应
+interface OpenAICompatibleResponse {
+  choices: {
+    index: number;
+    message: {
+      role: string;
+      content: string;
+    };
+    finish_reason: string;
+  }[];
+  error?: {
+    message: string;
+  };
+}
+
+type APIResponse = AnthropicResponse | OpenAICompatibleResponse;
 
 interface ClaudeErrorResponse {
   error: {
@@ -107,17 +125,31 @@ export async function callClaudeAPI(apiConfig: APIConfig, prompt: string, imageB
     throw new Error(errorMessage);
   }
 
-  const data: ClaudeResponse = await response.json();
+  const data: APIResponse = await response.json();
 
   if (data.error) {
     throw new Error(data.error.message);
   }
 
-  if (!data.content || data.content.length === 0) {
+  console.log(data);
+
+  // 解析响应内容，兼容 Anthropic 原生格式和 OpenAI 兼容格式
+  let textContent: string | undefined;
+
+  // 检查 OpenAI 兼容格式：choices[0].message.content
+  if ('choices' in data && data.choices?.length > 0) {
+    textContent = data.choices[0].message.content;
+  }
+  // 检查 Anthropic 原生格式：content[0].text
+  else if ('content' in data && data.content?.length > 0) {
+    textContent = data.content[0].text;
+  }
+
+  if (!textContent) {
     throw new Error('API 返回内容为空');
   }
 
-  return data.content[0].text;
+  return textContent;
 }
 
 /**

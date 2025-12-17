@@ -128,7 +128,7 @@ export default function SettingsDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm">
+      <DialogContent className="w-[90%] rounded-lg h-[90%] overflow-auto">
         <DialogHeader>
           <DialogTitle>设置</DialogTitle>
           <DialogDescription>配置 Claude API 和默认参数</DialogDescription>

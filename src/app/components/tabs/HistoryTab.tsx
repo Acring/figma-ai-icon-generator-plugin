@@ -217,7 +217,7 @@ export default function HistoryTab({ history, onDelete, onClear }: HistoryTabPro
 
               {/* 自定义提示词 */}
               {selectedRecord.request.customPrompt && (
-                <div className="space-y-1">
+                <div className="flex flex-col gap-1">
                   <span className="text-sm text-muted-foreground">其他要求</span>
                   <p className="rounded bg-muted/50 p-2 text-sm">{selectedRecord.request.customPrompt}</p>
                 </div>

@@ -1,6 +1,6 @@
 import '../styles/ui.css';
-import { useState, useCallback } from 'react';
-import { Settings, Sparkles, Library, FileText, History } from 'lucide-react';
+import { useState, useCallback, useEffect } from 'react';
+import { Settings, Sparkles, Library, FileText, History, GripHorizontal } from 'lucide-react';
 import { Button } from './ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tabs';
 import { ScrollArea } from './ui/scroll-area';
@@ -44,6 +44,32 @@ export default function App() {
 
   // 数据加载状态
   const [isLoaded, setIsLoaded] = useState(false);
+
+  // 拖拽调整大小相关
+  const [isResizing, setIsResizing] = useState(false);
+
+  // 处理拖拽调整大小
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      const newWidth = Math.max(300, e.clientX);
+      const newHeight = Math.max(400, e.clientY);
+      parent.postMessage({ pluginMessage: { type: 'resize-ui', width: newWidth, height: newHeight } }, '*');
+    };
+
+    const handleMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+  }, [isResizing]);
 
   // ==================== 初始化存储数据 ====================
 
@@ -172,7 +198,7 @@ export default function App() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="relative flex h-screen flex-col overflow-auto">
       {/* Header */}
       <header className="flex items-center justify-between border-b px-4 py-3">
         <div className="flex items-center gap-2">
@@ -250,6 +276,17 @@ export default function App() {
         onSaveApiConfig={handleSaveApiConfig}
         onSaveSettings={handleSaveSettings}
       />
+
+      {/* Resizer - 拖拽调整窗口大小 */}
+      <div
+        className="fixed bottom-0 right-0 flex h-4 w-4 cursor-nwse-resize items-center justify-center text-muted-foreground/50 hover:text-muted-foreground"
+        onMouseDown={(e) => {
+          e.preventDefault();
+          setIsResizing(true);
+        }}
+      >
+        <GripHorizontal className="h-3 w-3 rotate-[-45deg]" />
+      </div>
     </div>
   );
 }

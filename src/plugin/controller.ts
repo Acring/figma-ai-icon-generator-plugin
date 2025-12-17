@@ -3,7 +3,7 @@
 // 负责：Figma API 操作、clientStorage 存储、与 UI 通信
 
 // 初始化插件
-figma.showUI(__html__, { width: 360, height: 1000 });
+figma.showUI(__html__, { width: 360, height: 700 });
 
 // 设置消息处理器
 setupMessageHandlers();
