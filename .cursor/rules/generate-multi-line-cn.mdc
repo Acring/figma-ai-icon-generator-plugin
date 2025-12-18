@@ -1,0 +1,20 @@
+---
+alwaysApply: false
+---
+
+- 在需要使用 cn 函数的地方，如果参数比较多，则需要使用多行方式书写。
+- 相关的 className 放在同一行，除非过长
+- 在修改时不要修改已经存在的 className
+
+例子:
+
+```tsx
+<div
+  className={cn(
+    'flex flex-col items-center justify-center',
+    'min-w-0 flex-1 gap-1',
+    'transition-colors duration-200',
+    'active:opacity-70'
+  )}
+></div>
+```

@@ -240,6 +240,7 @@ export default function App() {
               settings={settings}
               onAddHistory={handleAddHistory}
               onOpenSettings={() => setSettingsOpen(true)}
+              onGoToLibrary={() => setActiveTab('library')}
             />
           </TabsContent>
 

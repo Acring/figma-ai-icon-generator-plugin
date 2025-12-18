@@ -10,7 +10,15 @@ export function buildPrompt(request: GenerateRequest): string {
 
   // 添加风格参考
   if (styleRefs.length > 0) {
-    prompt += '参考以下 SVG 的风格（保持配色、渐变、描边等细节）：\n\n';
+    prompt += `参考以下 SVG 的风格（保持配色、渐变、描边等细节）：生成 ${outputWidth}x${outputHeight} 尺寸的 SVG 代码。主题是:"${theme}"`;
+
+    prompt += '要求：\n';
+    prompt += '- 使用参考 SVG 的设计语言和配色方案\n';
+    prompt += '- 输出完整的、可直接使用的 SVG 代码\n';
+    prompt += '- 确保 SVG 代码格式正确，可以被 Figma 解析\n';
+    prompt += '- SVG 必须包含 width 和 height 属性\n';
+    prompt += '- 只输出 SVG 代码，不需要其他解释\n';
+
     styleRefs.forEach((ref, index) => {
       prompt += `【参考 ${index + 1}: ${ref.name}】\n`;
       if (ref.description) {
@@ -25,22 +33,12 @@ export function buildPrompt(request: GenerateRequest): string {
     prompt += '根据附件中的草图生成插图。保持草图的构图和元素布局。\n\n';
   }
 
-  // 添加主题描述
-  prompt += `主题是："${theme}"\n\n`;
-
   // 添加自定义提示词
   if (customPrompt) {
     prompt += `其他要求：${customPrompt}\n\n`;
   }
 
   // 添加输出要求
-  prompt += `请生成 ${outputWidth}x${outputHeight} 尺寸的 SVG 代码。\n`;
-  prompt += '要求：\n';
-  prompt += '- 使用参考 SVG 的设计语言和配色方案\n';
-  prompt += '- 输出完整的、可直接使用的 SVG 代码\n';
-  prompt += '- 确保 SVG 代码格式正确，可以被 Figma 解析\n';
-  prompt += '- SVG 必须包含 width 和 height 属性\n';
-  prompt += '- 只输出 SVG 代码，不需要其他解释\n';
 
   return prompt;
 }

@@ -138,7 +138,7 @@ export default function LibraryTab({ styleRefs, onAdd, onUpdate, onDelete }: Lib
           </Button>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
           {styleRefs.map((ref) => (
             <Card
               key={ref.id}

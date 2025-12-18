@@ -1,16 +1,14 @@
 // ==================== Claude API 客户端 ====================
 
 export const DEFAULT_BASE_URL = 'https://api.anthropic.com/v1/messages';
-export const DEFAULT_MODEL = 'claude-sonnet-4-5-20250929';
+export const DEFAULT_MODEL = 'claude-opus-4-5-20251101';
 const MAX_TOKENS = 4096;
 
 // 预设模型列表
 export const PRESET_MODELS = [
   { value: 'claude-sonnet-4-5-20250929', label: 'Claude Sonnet 4.5' },
+  { value: 'claude-opus-4-5-20251101', label: 'Claude Opus 4.5' },
   { value: 'claude-sonnet-4-20250514', label: 'Claude Sonnet 4' },
-  { value: 'claude-3-5-sonnet-20241022', label: 'Claude 3.5 Sonnet' },
-  { value: 'claude-3-5-haiku-20241022', label: 'Claude 3.5 Haiku' },
-  { value: 'claude-3-opus-20240229', label: 'Claude 3 Opus' },
 ] as const;
 
 interface ClaudeContent {

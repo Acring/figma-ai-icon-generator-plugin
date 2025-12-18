@@ -18,6 +18,7 @@ interface GenerateTabProps {
   settings: AppStorageData['settings'];
   onAddHistory: (record: HistoryRecord) => void;
   onOpenSettings: () => void;
+  onGoToLibrary: () => void;
 }
 
 export default function GenerateTab({
@@ -27,6 +28,7 @@ export default function GenerateTab({
   settings,
   onAddHistory,
   onOpenSettings,
+  onGoToLibrary,
 }: GenerateTabProps) {
   // 草图
   const [sketch, setSketch] = useState<SketchData | null>(null);
@@ -124,11 +126,13 @@ export default function GenerateTab({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* 草图预览 */}
-      <SketchPreview sketch={sketch} onSketchChange={setSketch} />
-
       {/* 风格参考选择 */}
-      <StyleRefSelector styleRefs={styleRefs} selectedIds={selectedRefIds} onSelectionChange={setSelectedRefIds} />
+      <StyleRefSelector
+        styleRefs={styleRefs}
+        selectedIds={selectedRefIds}
+        onSelectionChange={setSelectedRefIds}
+        onGoToLibrary={onGoToLibrary}
+      />
 
       {/* 主题描述 */}
       <div className="flex flex-col gap-2">
@@ -171,6 +175,8 @@ export default function GenerateTab({
           rows={2}
         />
       </div>
+      {/* 草图预览 */}
+      <SketchPreview sketch={sketch} onSketchChange={setSketch} />
 
       {/* 输出尺寸 */}
       <div className="flex flex-col gap-2">
