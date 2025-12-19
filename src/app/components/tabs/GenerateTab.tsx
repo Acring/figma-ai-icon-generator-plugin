@@ -8,6 +8,7 @@ import { Card } from '../ui/card';
 import SketchPreview from '../features/SketchPreview';
 import StyleRefSelector from '../features/StyleRefSelector';
 import GenerateResult from '../features/GenerateResult';
+import BatchGenerateResult from '../features/BatchGenerateResult';
 import { generateIcon } from '../../lib/api';
 import { buildPrompt, applyTemplate, generateId } from '../../lib/prompts';
 
@@ -54,11 +55,23 @@ export default function GenerateTab({
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // 批量生成状态
+  const [batchResults, setBatchResults] = useState<{ theme: string; result: GenerateResult }[]>([]);
+  const [generatingIndex, setGeneratingIndex] = useState(-1); // -1 表示未开始
+
   // 获取选中的风格参考
   const selectedRefs = styleRefs.filter((ref) => selectedRefIds.includes(ref.id));
 
+  // 解析主题列表（每行一个主题）
+  const themes = theme
+    .split('\n')
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const themeCount = themes.length;
+  const isBatchMode = themeCount > 1;
+
   // 检查是否可以生成
-  const canGenerate = apiConfig && theme.trim() && !isGenerating;
+  const canGenerate = apiConfig && themeCount > 0 && !isGenerating;
 
   // 应用模板
   const handleApplyTemplate = (templateId: string) => {
@@ -73,40 +86,75 @@ export default function GenerateTab({
     }
   };
 
-  // 生成图标
+  // 生成图标（支持单个和批量）
   const handleGenerate = useCallback(async () => {
-    if (!apiConfig || !theme.trim()) return;
+    if (!apiConfig || themes.length === 0) return;
 
     setIsGenerating(true);
     setError(null);
     setResult(null);
+    setBatchResults([]);
+    setGeneratingIndex(0);
 
-    const request: GenerateRequest = {
+    const baseRequest = {
       sketch: sketch || undefined,
       styleRefs: selectedRefs,
-      theme: theme.trim(),
       customPrompt: customPrompt.trim() || undefined,
       outputWidth,
       outputHeight,
     };
 
     try {
-      const generateResult = await generateIcon(apiConfig, request, buildPrompt);
-      setResult(generateResult);
+      if (themes.length === 1) {
+        // 单个生成
+        const request: GenerateRequest = {
+          ...baseRequest,
+          theme: themes[0],
+        };
+        const generateResult = await generateIcon(apiConfig, request, buildPrompt);
+        setResult(generateResult);
 
-      // 保存到历史记录
-      onAddHistory({
-        id: generateId(),
-        request,
-        result: generateResult,
-        createdAt: Date.now(),
-      });
+        // 保存到历史记录
+        onAddHistory({
+          id: generateId(),
+          request,
+          result: generateResult,
+          createdAt: Date.now(),
+        });
+      } else {
+        // 批量生成
+        for (let i = 0; i < themes.length; i++) {
+          setGeneratingIndex(i);
+          const currentTheme = themes[i];
+          const request: GenerateRequest = {
+            ...baseRequest,
+            theme: currentTheme,
+          };
+
+          try {
+            const generateResult = await generateIcon(apiConfig, request, buildPrompt);
+            setBatchResults((prev) => [...prev, { theme: currentTheme, result: generateResult }]);
+
+            // 每个结果单独保存到历史记录
+            onAddHistory({
+              id: generateId(),
+              request,
+              result: generateResult,
+              createdAt: Date.now(),
+            });
+          } catch (err) {
+            // 单个失败不中断整个批量生成，记录错误继续
+            console.error(`生成 "${currentTheme}" 失败:`, err);
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : '生成失败，请重试');
     } finally {
       setIsGenerating(false);
+      setGeneratingIndex(-1);
     }
-  }, [apiConfig, theme, sketch, selectedRefs, customPrompt, outputWidth, outputHeight, onAddHistory]);
+  }, [apiConfig, themes, sketch, selectedRefs, customPrompt, outputWidth, outputHeight, onAddHistory]);
 
   // 没有配置 API Key 时显示提示
   if (!apiConfig) {
@@ -136,12 +184,16 @@ export default function GenerateTab({
 
       {/* 主题描述 */}
       <div className="flex flex-col gap-2">
-        <Label htmlFor="theme">主题描述</Label>
-        <Input
+        <div className="flex items-center justify-between">
+          <Label htmlFor="theme">主题描述</Label>
+          {themeCount > 0 && <span className="text-xs text-muted-foreground">共 {themeCount} 个主题</span>}
+        </div>
+        <Textarea
           id="theme"
-          placeholder="例如：数据库集群、云服务器、安全盾牌..."
+          placeholder="每行输入一个主题，例如：&#10;云服务器&#10;数据库&#10;安全盾牌"
           value={theme}
           onChange={(e) => setTheme(e.target.value)}
+          rows={3}
         />
       </div>
 
@@ -204,11 +256,28 @@ export default function GenerateTab({
       {/* 生成按钮 */}
       <Button className="w-full" size="lg" disabled={!canGenerate} onClick={handleGenerate}>
         <Sparkles className="mr-2 h-4 w-4" />
-        {isGenerating ? '生成中...' : '生成图标'}
+        {isGenerating
+          ? isBatchMode
+            ? `生成中 ${generatingIndex + 1}/${themeCount}...`
+            : '生成中...'
+          : isBatchMode
+            ? `生成 ${themeCount} 个图标`
+            : '生成图标'}
       </Button>
 
       {/* 生成结果 */}
-      <GenerateResult result={result} isLoading={isGenerating} error={error} onRegenerate={handleGenerate} />
+      {isBatchMode || batchResults.length > 0 ? (
+        <BatchGenerateResult
+          results={batchResults}
+          isLoading={isGenerating}
+          generatingIndex={generatingIndex}
+          totalCount={themeCount}
+          error={error}
+          onRegenerate={handleGenerate}
+        />
+      ) : (
+        <GenerateResult result={result} isLoading={isGenerating} error={error} onRegenerate={handleGenerate} />
+      )}
     </div>
   );
 }

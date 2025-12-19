@@ -2,7 +2,7 @@
 
 export const DEFAULT_BASE_URL = 'https://api.anthropic.com/v1/messages';
 export const DEFAULT_MODEL = 'claude-opus-4-5-20251101';
-const MAX_TOKENS = 4096;
+const MAX_TOKENS = 16384;
 
 // 预设模型列表
 export const PRESET_MODELS = [
