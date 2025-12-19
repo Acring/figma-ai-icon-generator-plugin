@@ -30,7 +30,11 @@
 
 ## 📸 Screenshots
 
-> Coming soon
+### generate
+![](./screenshot1.png)
+
+### finish
+![](./screenshot2.png)
 
 ## 🚀 Quick Start
 
